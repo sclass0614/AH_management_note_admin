@@ -1,6 +1,5 @@
 // Supabase 클라이언트는 supabase.js에서 이미 초기화됨
-// supabase.js에서 초기화된 클라이언트 사용
-const supabase = window.supabase;
+// supabase.js의 initSupabase() 함수를 사용하여 클라이언트 가져오기
 
 // 전역 변수
 let currentDate = new Date().toISOString().split('T')[0].replace(/-/g, ''); // 오늘 날짜 (YYYYMMDD 형식)
@@ -41,6 +40,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 페이지 초기화
 function initializePage() {
+    // Supabase 클라이언트 초기화
+    const supabase = initSupabase();
+    
     // 한국 시간 기준 오늘 날짜로 date picker 설정 (YYYY-MM-DD 형식)
     const koreaTime = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
     const today = koreaTime.toISOString().split('T')[0];
@@ -113,6 +115,9 @@ function setupEventListeners() {
 // Supabase에서 개인업무 데이터 로드
 async function loadIndividualWorkData() {
     try {
+        // Supabase 클라이언트 가져오기
+        const supabase = initSupabase();
+        
         console.log('개인업무 데이터 로딩 시작...');
         console.log('현재 날짜 (YYYYMMDD):', currentDate);
         console.log('현재 직원번호:', employeeNumberInput.value);
@@ -172,6 +177,9 @@ async function loadIndividualWorkData() {
 
 // 데이터 입력 처리
 async function submitData() {
+    // Supabase 클라이언트 가져오기
+    const supabase = initSupabase();
+    
     // 입력값 검증
     const employeeNumber = employeeNumberInput.value.trim();
     const employeeName = employeeNameInput.value.trim();
@@ -351,6 +359,9 @@ function showConflictModal(serverData) {
 
 // 강제 업데이트 함수
 async function forceUpdate() {
+    // Supabase 클라이언트 가져오기
+    const supabase = initSupabase();
+    
     const employeeNumber = employeeNumberInput.value.trim();
     const employeeName = employeeNameInput.value.trim();
     const workContent = contentTextarea.value.trim();
@@ -455,6 +466,9 @@ function switchTab(tabName) {
 // 과거 데이터 로드 함수
 async function loadHistoryData() {
     try {
+        // Supabase 클라이언트 가져오기
+        const supabase = initSupabase();
+        
         const historyDate = historyDatePicker.value.replace(/-/g, '');
         const employeeNumber = employeeNumberInput.value.trim();
         
