@@ -331,8 +331,9 @@ async function deleteData() {
         }
         
         // 삭제 확인
+        const formattedDate = formatDateForDelete(currentDate);
         const confirmDelete = await customConfirm(
-            `${employeeNameInput.value || employeeNumber}님의 ${formatDateForDisplay(currentDate)} 업무내용을 삭제하시겠습니까?\n\n삭제된 데이터는 복구할 수 없습니다.`,
+            `${employeeNameInput.value || employeeNumber}님의 ${formattedDate} 업무내용을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`,
             '삭제 확인'
         );
         
@@ -502,6 +503,19 @@ function formatDate(dateString) {
         month: '2-digit',
         day: '2-digit'
     });
+}
+
+// 유틸리티 함수: 삭제 확인용 날짜 포맷팅 (YYYYMMDD -> YYYY년 MM월 DD일)
+function formatDateForDelete(dateString) {
+    if (!dateString || dateString.length !== 8) {
+        return '날짜 정보 없음';
+    }
+    
+    const year = dateString.substring(0, 4);
+    const month = dateString.substring(4, 6);
+    const day = dateString.substring(6, 8);
+    
+    return `${year}년 ${month}월 ${day}일`;
 }
 
 // 유틸리티 함수: 현재 시간 가져오기
