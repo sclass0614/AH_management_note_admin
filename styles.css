@@ -631,3 +631,36 @@ body {
 .custom-btn:active {
     transform: translateY(0);
 }
+
+/* 입력 필드와 버튼을 함께 배치하는 컨테이너 */
+.input-with-button {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.input-with-button .form-input {
+    flex: 1;
+}
+
+.confirm-btn {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: background-color 0.3s;
+    white-space: nowrap;
+    min-width: 60px;
+}
+
+.confirm-btn:hover {
+    background-color: var(--main-color);
+}
+
+.confirm-btn:active {
+    transform: translateY(1px);
+}
