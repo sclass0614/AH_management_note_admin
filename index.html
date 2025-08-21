@@ -13,6 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <!-- 스크립트 파일 -->
     <script src="supabase.js"></script>
+    <script type="module" src="https://sclass0614.github.io/authCheck/authCheck.js"></script>
     
   </head>
   <body>
@@ -62,7 +63,10 @@
                 <textarea id="contentTextarea" class="form-textarea" placeholder="업무내용을 입력하세요"></textarea>
               </div>
 
-              <button class="submit-btn" id="submitBtn">입력</button>
+              <div class="button-container">
+                <button class="delete-btn" id="deleteBtn">삭제</button>
+                <button class="submit-btn" id="submitBtn">입력</button>
+              </div>
             </div>
           </div>
 

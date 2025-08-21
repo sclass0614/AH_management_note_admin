@@ -13,6 +13,7 @@ const employeeNumberInput = document.getElementById('employeeNumber');
 const employeeNameInput = document.getElementById('employeeName');
 const contentTextarea = document.getElementById('contentTextarea');
 const submitBtn = document.getElementById('submitBtn');
+const deleteBtn = document.getElementById('deleteBtn');
 
 // 탭 요소들
 const inputTab = document.getElementById('inputTab');
@@ -83,6 +84,9 @@ function setupEventListeners() {
     
     // 입력 버튼
     submitBtn.addEventListener('click', submitData);
+    
+    // 삭제 버튼
+    deleteBtn.addEventListener('click', deleteData);
     
     // 탭 버튼 이벤트
     inputTab.addEventListener('click', function() {
@@ -291,6 +295,77 @@ async function submitData() {
     } catch (error) {
         console.error('데이터 처리 중 예외 발생:', error);
         await customAlert('데이터 처리 중 오류가 발생했습니다.', '오류');
+    }
+}
+
+// 데이터 삭제 처리
+async function deleteData() {
+    // Supabase 클라이언트 가져오기
+    const supabase = initSupabase();
+    
+    // 입력값 검증
+    const employeeNumber = employeeNumberInput.value.trim();
+    
+    if (!employeeNumber) {
+        await customAlert('직원번호를 입력해주세요.', '입력 확인');
+        return;
+    }
+    
+    try {
+        // 삭제할 데이터가 있는지 먼저 확인
+        const { data: existingData, error: checkError } = await supabase
+            .from('management_note_individual')
+            .select('*')
+            .eq('직원번호', employeeNumber)
+            .eq('날짜', currentDate);
+        
+        if (checkError) {
+            console.error('데이터 확인 중 에러:', checkError);
+            await customAlert('데이터 확인 중 오류가 발생했습니다.', '오류');
+            return;
+        }
+        
+        if (!existingData || existingData.length === 0) {
+            await customAlert('삭제할 데이터가 없습니다.', '알림');
+            return;
+        }
+        
+        // 삭제 확인
+        const confirmDelete = await customConfirm(
+            `${employeeNameInput.value || employeeNumber}님의 ${formatDateForDisplay(currentDate)} 업무내용을 삭제하시겠습니까?\n\n삭제된 데이터는 복구할 수 없습니다.`,
+            '삭제 확인'
+        );
+        
+        if (!confirmDelete) {
+            return;
+        }
+        
+        // 데이터 삭제
+        const { error: deleteError } = await supabase
+            .from('management_note_individual')
+            .delete()
+            .eq('직원번호', employeeNumber)
+            .eq('날짜', currentDate);
+        
+        if (deleteError) {
+            console.error('데이터 삭제 에러:', deleteError);
+            await customAlert('데이터 삭제 중 오류가 발생했습니다.', '오류');
+            return;
+        }
+        
+        console.log('데이터 삭제 성공');
+        
+        // 폼 초기화
+        clearForm();
+        
+        // 개인업무 데이터 다시 로드
+        await loadIndividualWorkData();
+        
+        await customAlert('업무내용이 성공적으로 삭제되었습니다.', '완료');
+        
+    } catch (error) {
+        console.error('데이터 삭제 중 예외 발생:', error);
+        await customAlert('데이터 삭제 중 오류가 발생했습니다.', '오류');
     }
 }
 
