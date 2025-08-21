@@ -20,7 +20,7 @@ async function getEmployeesInfo() {
   try {
     const supabase = initSupabase();
     const { data, error } = await supabase
-      .from('membersinfo')
+      .from('employeesinfo')
       .select('직원번호, 직원명');
     
     if (error) {
@@ -43,7 +43,7 @@ async function getEmployeeByNumber(employeeNumber) {
     
     // 먼저 전체 데이터를 가져와서 클라이언트에서 필터링
     const { data: allEmployees, error } = await supabase
-      .from('membersinfo')
+      .from('employeesinfo')
       .select('*');
     
     if (error) {
