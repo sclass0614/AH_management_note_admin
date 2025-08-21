@@ -1,4 +1,6 @@
 // Supabase 클라이언트는 supabase.js에서 이미 초기화됨
+// supabase.js에서 초기화된 클라이언트 사용
+const supabase = window.supabase;
 
 // 전역 변수
 let currentDate = new Date().toISOString().split('T')[0].replace(/-/g, ''); // 오늘 날짜 (YYYYMMDD 형식)
@@ -61,22 +63,19 @@ function setupEventListeners() {
         loadIndividualWorkData();
     });
     
-    // 직원번호 변경 시
-    employeeNumberInput.addEventListener('input', async function() {
-        const employeeNumber = this.value.trim();
-        if (employeeNumber) {
-            // 직원명 자동 로드
-            await loadEmployeeName(employeeNumber);
-            // 해당 직원의 현재 날짜 데이터 로드
-            await loadIndividualWorkData();
-        } else {
-            // 직원번호가 비어있으면 직원명도 비우기
-            employeeNameInput.value = '';
-            contentTextarea.value = '';
-            contentTextarea.dataset.existingId = '';
-            originalData = null;
-            originalWorkContent = '';
-            adjustTextareaHeight();
+    // 직원번호 확인 버튼과 엔터 키 이벤트
+    const employeeConfirmBtn = document.getElementById('employeeConfirmBtn');
+    
+    // 확인 버튼 클릭 시
+    employeeConfirmBtn.addEventListener('click', async function() {
+        await handleEmployeeNumberConfirm();
+    });
+    
+    // 직원번호 입력 필드에서 엔터 키 누를 때
+    employeeNumberInput.addEventListener('keypress', async function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // 폼 제출 방지
+            await handleEmployeeNumberConfirm();
         }
     });
     
@@ -751,114 +750,46 @@ function cleanURLFromEmployeeNumber() {
     }
 }
 
+// 직원번호 확인 처리 함수
+async function handleEmployeeNumberConfirm() {
+    const employeeNumber = employeeNumberInput.value.trim();
+    
+    if (employeeNumber) {
+        // 직원명 자동 로드
+        await loadEmployeeName(employeeNumber);
+        // 해당 직원의 현재 날짜 데이터 로드
+        await loadIndividualWorkData();
+    } else {
+        // 직원번호가 비어있으면 직원명도 비우기
+        employeeNameInput.value = '';
+        contentTextarea.value = '';
+        contentTextarea.dataset.existingId = '';
+        originalData = null;
+        originalWorkContent = '';
+        adjustTextareaHeight();
+    }
+}
+
 // 직원번호로 직원명 가져오기 (선택사항)
 async function loadEmployeeName(employeeNumber) {
     console.log('=== 직원명 로드 시작 ===');
     console.log('조회할 직원번호:', employeeNumber);
     
     try {
-        // 먼저 테이블 구조와 데이터 확인
-        console.log('테이블 구조 확인 중...');
-        const { data: sampleData, error: sampleError } = await supabase
-            .from('membersinfo')
-            .select('*')
-            .limit(5);
+        // supabase.js의 함수를 사용하여 직원 정보 조회
+        const matchedEmployee = await getEmployeeByNumber(employeeNumber);
         
-        console.log('샘플 데이터:', sampleData);
-        console.log('샘플 에러:', sampleError);
-        
-        if (sampleData && sampleData.length > 0) {
-            console.log('테이블 컬럼명:', Object.keys(sampleData[0]));
-            console.log('첫 번째 행:', sampleData[0]);
-        }
-        
-        // 방법 1: 모든 데이터를 가져와서 클라이언트에서 필터링
-        console.log('전체 직원 데이터 조회 중...');
-        const { data: allEmployees, error } = await supabase
-            .from('membersinfo')
-            .select('*');
-        
-        console.log('전체 직원 데이터:', allEmployees);
-        console.log('조회 에러:', error);
-        
-        if (allEmployees && !error) {
-            console.log('전체 직원 수:', allEmployees.length);
-            
-            // 대소문자 구분 없이 직원번호 매칭 (상세 디버깅)
-            console.log('매칭 과정 상세:');
-            console.log('검색할 직원번호:', `"${employeeNumber}"`);
-            console.log('검색할 직원번호 길이:', employeeNumber.length);
-            console.log('검색할 직원번호 charCode:', Array.from(employeeNumber).map(c => c.charCodeAt(0)));
-            
-            const matchedEmployee = allEmployees.find(emp => {
-                if (!emp.직원번호) return false;
-                
-                const serverEmpNo = emp.직원번호;
-                const searchEmpNo = employeeNumber;
-                
-                console.log(`비교: "${serverEmpNo}" vs "${searchEmpNo}"`);
-                console.log(`길이: ${serverEmpNo.length} vs ${searchEmpNo.length}`);
-                console.log(`소문자 변환: "${serverEmpNo.toLowerCase()}" vs "${searchEmpNo.toLowerCase()}"`);
-                
-                // 방법 1: toLowerCase() 비교
-                const lowerMatch = serverEmpNo.toLowerCase() === searchEmpNo.toLowerCase();
-                console.log(`소문자 매칭 결과: ${lowerMatch}`);
-                
-                // 방법 2: 정확한 문자열 비교
-                const exactMatch = serverEmpNo === searchEmpNo;
-                console.log(`정확한 매칭 결과: ${exactMatch}`);
-                
-                // 방법 3: 대문자로 변환해서 비교
-                const upperMatch = serverEmpNo.toUpperCase() === searchEmpNo.toUpperCase();
-                console.log(`대문자 매칭 결과: ${upperMatch}`);
-                
-                // 방법 4: 정규식으로 대소문자 무시 비교
-                const regexMatch = new RegExp(`^${searchEmpNo}$`, 'i').test(serverEmpNo);
-                console.log(`정규식 매칭 결과: ${regexMatch}`);
-                
-                return lowerMatch || exactMatch || upperMatch || regexMatch;
-            });
-            
-            console.log('매칭된 직원:', matchedEmployee);
-            
-            if (matchedEmployee) {
-                employeeNameInput.value = matchedEmployee.직원명 || '';
-                console.log('직원명 설정 완료:', employeeNameInput.value);
-                
-                // 직원명이 설정되면 해당 직원의 오늘 데이터를 로드
-                await loadIndividualWorkData();
-            } else {
-                console.log('해당 직원번호를 찾을 수 없음');
-                console.log('검색한 직원번호:', employeeNumber);
-                console.log('서버의 직원번호들:', allEmployees.map(emp => emp.직원번호));
-                
-                // 방법 2: 대안으로 ilike 사용 (대소문자 무시)
-                console.log('ilike로 재시도 중...');
-                const { data: ilikeResult, error: ilikeError } = await supabase
-                    .from('membersinfo')
-                    .select('*')
-                    .ilike('직원번호', employeeNumber);
-                
-                console.log('ilike 결과:', ilikeResult);
-                console.log('ilike 에러:', ilikeError);
-                
-                if (ilikeResult && ilikeResult.length > 0) {
-                    employeeNameInput.value = ilikeResult[0].직원명 || '';
-                    console.log('ilike로 직원명 설정 완료:', employeeNameInput.value);
-                    
-                    // 직원명이 설정되면 해당 직원의 오늘 데이터를 로드
-                    await loadIndividualWorkData();
-                }
-            }
+        if (matchedEmployee) {
+            employeeNameInput.value = matchedEmployee.직원명 || '';
+            console.log('직원명 설정 완료:', employeeNameInput.value);
         } else {
-            console.log('직원 데이터 조회 실패');
-            if (error) {
-                console.log('에러 상세:', error);
-            }
+            console.log('해당 직원번호를 찾을 수 없음');
+            employeeNameInput.value = '';
         }
     } catch (error) {
         console.log('직원명 로드 실패:', error);
         console.log('에러 상세:', error.message);
+        employeeNameInput.value = '';
     }
     
     console.log('=== 직원명 로드 완료 ===');
