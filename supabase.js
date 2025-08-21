@@ -13,12 +13,12 @@ function initSupabase() {
   }
   return window.supabase;
 }
-// 사용하려는 위치에서 ↓ 이렇게 두 줄
-const supabase = initSupabase(); // 1. 클라이언트 가져오기
+// 각 함수에서 initSupabase()를 호출하여 클라이언트를 가져옵니다
 
 // 직원 정보를 가져오는 함수
 async function getEmployeesInfo() {
   try {
+    const supabase = initSupabase();
     const { data, error } = await supabase
       .from('membersinfo')
       .select('직원번호, 직원명');
@@ -38,6 +38,7 @@ async function getEmployeesInfo() {
 // 특정 직원번호로 직원 정보를 가져오는 함수
 async function getEmployeeByNumber(employeeNumber) {
   try {
+    const supabase = initSupabase();
     console.log('직원번호로 직원 정보 조회:', employeeNumber);
     
     // 먼저 전체 데이터를 가져와서 클라이언트에서 필터링
